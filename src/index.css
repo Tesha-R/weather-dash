@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-image: url(./assets/mountain-blue.png);
+  width: 100vw;
+  height: 100vh;
+  background-position: 50% 20%;
+  background-repeat: no-repeat;
+  overflow-x: hidden;
+}
