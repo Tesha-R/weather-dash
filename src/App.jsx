@@ -1,29 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './App.css';
 
 function App() {
   const [weatherData, setWeatherData] = useState(null);
+  const [searchValue, setSearchValue] = useState('');
 
   const apiKey = import.meta.env.VITE_ACCUWEATHER_API;
-  const location = 'encinitas';
+  // const location = 'encinitas';
 
-  // Fetch location key
-  useEffect(() => {
-    async function getLocationKey() {
-      const response = await fetch(
-        `http://dataservice.accuweather.com/locations/v1/cities/search?apikey=${apiKey}&q=${location}`
-      );
-      const data = await response.json();
-      // console.log('get key', data);
-      if (data.length > 0) {
-        const locationKey = data[0].Key; // Get the location key from the API response
-        getWeatherForecast(locationKey); // Call the function to get the weather forecast with the location key
-      } else {
-        throw new Error('Location not found');
-      }
+  async function handleSearch(e) {
+    e.preventDefault();
+    console.log('event', searchValue);
+    if (!searchValue) {
+      return;
     }
-    async function getWeatherForecast(locationKey) {
-      try {
+    try {
+      const responseLoc = await fetch(
+        `http://dataservice.accuweather.com/locations/v1/cities/search?apikey=${apiKey}&q=${searchValue}`
+      );
+      const locationData = await responseLoc.json();
+      // console.log('get key', data);
+      if (locationData.length > 0) {
+        const locationKey = locationData[0].Key; // Get the location key from the API response
+        //getWeatherForecast(locationKey); // Call the function to get the weather forecast with the location key
         const response = await fetch(
           `http://dataservice.accuweather.com/forecasts/v1/daily/1day/${locationKey}?apikey=${apiKey}`
         );
@@ -31,14 +30,17 @@ function App() {
         // console.log('get forecast', data);
         setWeatherData(data); // Update the state with the fetched weather data
         // console.log('weatherData', weatherData);
-      } catch (error) {
-        console.error(error);
+      } else {
+        throw new Error('Location not found');
       }
+    } catch (error) {
+      console.error(error);
     }
+  }
 
-    getLocationKey(); // Fetch the location key when the component mounts
-  }, [apiKey]); // Empty dependency array. Run once when the component mounts
-
+  function handleChange(e) {
+    setSearchValue(e.target.value);
+  }
   return (
     <>
       <div className="container mx-auto mt-5 p-5">
@@ -46,13 +48,23 @@ function App() {
           <h1 className="text-2xl text-white font-light">
             Weather<span className="font-semibold">Dash</span>
           </h1>
-          <input
-            type="text"
-            name="search"
-            id="search-el"
-            placeholder="Search"
-            className="text-white bg-gray-900 bg-opacity-50 p-5 rounded-[30px] lg:w-1/6"
-          />
+          <div className="relative">
+            <input
+              type="text"
+              name="search"
+              id="search-el"
+              placeholder="Search"
+              className="text-white bg-gray-900 bg-opacity-50 p-5 rounded-[30px]"
+              value={searchValue}
+              onChange={handleChange}
+            />
+            <button
+              onClick={handleSearch}
+              className="absolute right-0 rounded-full bg-gray-900 p-5  text-white hover:bg-purple-600"
+            >
+              Go
+            </button>
+          </div>
         </div>
         <div className="flex flex-wrap gap-7 text-left mb-5">
           {weatherData && weatherData.DailyForecasts ? (
@@ -73,12 +85,12 @@ function App() {
                     {weatherData.DailyForecasts[0].Temperature.Minimum.Value}°{' '}
                     <span>Low</span>
                   </p>
-                  <p className="text-2xl">San Diego, CA</p>
+                  <p className="text-2xl capitalize">{searchValue}</p>
                 </div>
                 <div className=" bg-gray-900 bg-opacity-50 p-10 rounded-[30px] mb-5">
                   {' '}
                   <p className="text-2xl">Moon</p>
-                  <p>San Diego, CA</p>
+                  <p>Moon phase</p>
                 </div>
                 <div className=" bg-gray-900 bg-opacity-50 p-10 rounded-[30px]">
                   {' '}
